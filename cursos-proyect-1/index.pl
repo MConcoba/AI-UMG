@@ -69,6 +69,7 @@ asignacion_base(e1, h3, cu3).
 asignacion_base(e2, h1, cu1).
 asignacion_base(e2, h4, cu4).
 asignacion_base(e3, h5, cu5).
+asignacion_base(e4, h5, cu5).
 
 % Reglas de asignación válidas
 asignacion(E, H, C) :-
@@ -85,6 +86,7 @@ pago_base(e1, cu3).
 pago_base(e2, cu1).
 pago_base(e2, cu4).
 pago_base(e3, cu5).
+pago_base(e4, cu5).
 
 % Regla para validar pagos
 pago(E, C) :-
@@ -110,30 +112,69 @@ aprobacion(E, C) :-
 
 % Consulta para obtener en que ciclos esta llevando cursos el estudiante X
 ciclos_estudiante(EstudianteID, Ciclos) :-
-    findall((CicloID, CicloNombre, Semestre), 
-            (asignacion(EstudianteID, _, CursoID), 
+    findall(
+        (CicloID, CicloNombre, Semestre), 
+        (
+            asignacion(EstudianteID, _, CursoID), 
             curso(CursoID, _, _, CicloID, _), 
-            ciclo(CicloID, CicloNombre, Semestre)),
-            Ciclos).
+            ciclo(CicloID, CicloNombre, Semestre)
+        ),
+        Ciclos
+    ).
 
 % Consulta para obtener los prerequisitos de un curso
 prerequisitos_curso(CursoID, Prerrequisitos) :-
     curso(CursoID, _, _, _, Prerrequisito),
-    (Prerrequisito = n -> Prerrequisitos = [] ; findall(Prerrequisito, curso(_, _, _, _, Prerrequisito), Prerrequisitos)).
+    ( Prerrequisito = n ->
+        Prerrequisitos = []
+    ;
+        findall(
+            (Prerrequisito, Nombre),
+            curso(Prerrequisito, _, Nombre, _, _),
+            Prerrequisitos
+        )
+    ).
 
 
 % Consulta para obtener los estudiantes inscritos en el mismo curso y mismo horario
 estudiantes_mismo_curso_horario(CursoID, HorarioID, Estudiantes) :-
-    findall(EstudianteID, (asignacion(EstudianteID, HorarioID, CursoID), inscripcion(_, EstudianteID)), Estudiantes).
+    findall(
+        (EstudianteID, Nombre, Apellido, HorarioID, Curso), 
+        (
+            asignacion(EstudianteID, HorarioID, CursoID), 
+            inscripcion(_, EstudianteID),
+            estudiante(EstudianteID, Nombre, Apellido, _),
+            curso(CursoID, _, Curso, _, _)
+        ), 
+        Estudiantes
+    ).
 
 % Consulta para obtener los cursos de un estudiante
 cursos_estudiante(EstudianteID, Cursos) :-
-    findall(CursoID, asignacion(EstudianteID, _, CursoID), Cursos).
+    findall(
+        CursoID, 
+        asignacion(EstudianteID, _, CursoID), 
+        Cursos
+    ).
 
 % Consulta para obtener los cursos aprobados por un estudiante
 cursos_aprobados_estudiante(EstudianteID, CursosAprobados) :-
-    findall(CursoID, (aprobacion(EstudianteID, CursoID), inscripcion(_, EstudianteID)), CursosAprobados).
+    findall(
+        CursoID, 
+        (
+            aprobacion(EstudianteID, CursoID), 
+            inscripcion(_, EstudianteID)
+        ), 
+        CursosAprobados
+    ).
 
 % Consulta para obtener los cursos pendientes de pago un estudiante
 cursos_pendientes_pago_estudiante(EstudianteID, CursosPendientes) :-
-    findall(CursoID, (asignacion(EstudianteID, _, CursoID), \+ pago(EstudianteID, CursoID)), CursosPendientes).
+    findall(
+        CursoID, 
+        (
+            asignacion(EstudianteID, _, CursoID), 
+            \+ pago(EstudianteID, CursoID)
+        ), 
+        CursosPendientes
+    ).
