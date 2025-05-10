@@ -109,6 +109,14 @@ aprobacion(E, C) :-
 
 
 % CONSULTAS
+% ¿Qué cursos existen en la carrera de ingeniería en sistemas?
+
+cursos_carrera(CarreraID, Cursos) :-
+    findall(
+        (CursoID, Nombre), 
+        curso(CursoID, CarreraID, Nombre, _, _), 
+        Cursos
+    ).
 
 % Consulta para obtener en que ciclos esta llevando cursos el estudiante X
 ciclos_estudiante(EstudianteID, Ciclos) :-
@@ -152,8 +160,10 @@ estudiantes_mismo_curso_horario(CursoID, HorarioID, Estudiantes) :-
 % Consulta para obtener los cursos de un estudiante
 cursos_estudiante(EstudianteID, Cursos) :-
     findall(
-        CursoID, 
-        asignacion(EstudianteID, _, CursoID), 
+        (CursoID, Curso), 
+        ( asignacion(EstudianteID, _, CursoID), 
+        curso(CursoID, _, Curso, _, _)),
+       
         Cursos
     ).
 
